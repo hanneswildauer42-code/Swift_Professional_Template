@@ -1,6 +1,6 @@
 # Swift Professional Template
 
-Vorlage für professionelle Swift-Projekte mit Claude Code. Spiegel des Python-Templates (`Professional_Template`), mit Swift-spezifischer Toolchain.
+Vorlage für professionelle Swift-Projekte mit Claude Code. SPM-Layout, vollständige Toolchain (SwiftLint, swift-format, XCTest, Coverage-Gates, gitleaks), GitHub-Actions-CI für macOS und Linux, Methodik-Doku-Skelett.
 
 > **Hinweis:** Dieses Repository ist eine **Vorlage**, kein lauffähiges Projekt. Erst nach dem Initialisierungs-Interview und der Umbenennung (`scripts/rename_package.sh`) sind alle Platzhalter ersetzt.
 
@@ -84,22 +84,6 @@ Tests/PROJEKT_PACKAGETests/
 Optional:
 - `xcbeautify` für schönere CI-Ausgabe
 - `xcresultparser` für JUnit-XML-Export
-
-## Unterschied zum Python-Template
-
-| Bereich | Python-Template | Swift-Template |
-|---------|-----------------|----------------|
-| Dependency-Management | `uv` + `pyproject.toml` | `swift package` + `Package.swift` |
-| Lint | `ruff check` | `swiftlint lint` |
-| Format | `ruff format` | `swift-format` |
-| Type-Check | `mypy --strict` | entfällt (Swift statisch getypt) |
-| Test | `pytest` | `swift test` (XCTest) |
-| Coverage | `pytest-cov` | `swift test --enable-code-coverage` + `llvm-cov` |
-| Audit | `pip-audit` | `swift package audit-dependencies` (ab Swift 5.10+) |
-| Secrets | `gitleaks` | `gitleaks` (identisch) |
-| CI-Runner | Ubuntu | macOS-14 (ARM) |
-
-Die **methodischen Dokumente** (`CLAUDE.md`, `PROJEKT_INTERVIEW.md`, `UMSETZUNGSPLAN.md`, `METHODIK.md`, `ARCHITEKTUR.md`, `LEARNINGS.md`, `ISSUES.md`) sind **sprachunabhängig** und 1:1 vom Python-Template übernommen — nur die Phasen-Tasks und die Tool-Referenzen sind auf Swift gedreht.
 
 ## Phasen-Konzept (Kurzfassung)
 
