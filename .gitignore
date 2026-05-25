@@ -38,3 +38,6 @@ typecheck*.log
 AGENTS.md
 HANDOFF.md
 TODO.local.md
+
+# Antigravity-CLI Tool-State (lokaler User-Cache, nicht ins Repo)
+.antigravitycli/
