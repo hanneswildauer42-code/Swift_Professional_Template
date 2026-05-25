@@ -43,6 +43,16 @@ fi
 # Wir nutzen '|' als sed-Trenner (nicht '/'), damit Pfade als Eingaben
 # kein Problem wären. (Die Validierung oben verbietet '/' ohnehin — der
 # Trenner-Wechsel ist Defense in Depth.)
+#
+# `sed -i` ist plattformabhängig: GNU akzeptiert `-i` direkt, BSD/macOS
+# verlangt ein Backup-Suffix-Argument (`-i ''` für kein Backup). Wir
+# detektieren das anhand des sed-Versions-Strings.
+
+if sed --version 2>/dev/null | grep -q GNU; then
+    SED_INPLACE=(-i)
+else
+    SED_INPLACE=(-i '')
+fi
 
 echo "→ Ersetze in Quelldateien …"
 find . \
@@ -51,7 +61,7 @@ find . \
     -path './.swiftpm' -prune -o \
     -path './scripts/rename_package.sh' -prune -o \
     -type f \( -name '*.swift' -o -name '*.yml' -o -name '*.yaml' -o -name '*.md' -o -name 'Justfile' -o -name '.swiftlint.yml' -o -name 'Package.swift' \) \
-    -exec sed -i '' "s|PROJEKT_PACKAGE|$PKG_NAME|g; s|PROJEKT_NAME|$DIST_NAME|g" {} +
+    -exec sed "${SED_INPLACE[@]}" "s|PROJEKT_PACKAGE|$PKG_NAME|g; s|PROJEKT_NAME|$DIST_NAME|g" {} +
 
 echo "→ Verzeichnisse umbenennen …"
 if [ -d "Sources/PROJEKT_PACKAGE" ]; then

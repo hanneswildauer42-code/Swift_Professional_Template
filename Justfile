@@ -71,14 +71,20 @@ security:
 
 # Dependency-Audit über OSV (Open Source Vulnerabilities).
 # Setzt `osv-scanner` voraus (brew install osv-scanner).
+#
+# WICHTIG: osv-scanner liefert exit != 0 wenn CVEs gefunden werden.
+# Wir wollen das durchreichen, NICHT mit `|| true` o. ä. maskieren —
+# sonst wird der Audit-Step stillschweigend "grün" obwohl es Treffer gibt.
 audit:
-    @if command -v osv-scanner >/dev/null 2>&1; then \
-        osv-scanner scan source --lockfile Package.resolved 2>/dev/null \
-          || osv-scanner scan source .; \
-    else \
+    @if ! command -v osv-scanner >/dev/null 2>&1; then \
         echo "✗ osv-scanner nicht installiert."; \
         echo "  brew install osv-scanner"; \
         exit 1; \
+    fi; \
+    if [ -f Package.resolved ]; then \
+        osv-scanner scan source --lockfile Package.resolved; \
+    else \
+        osv-scanner scan source .; \
     fi
 
 # Saubere Build-Artefakte löschen

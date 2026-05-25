@@ -32,6 +32,17 @@ if [ -z "$BIN" ] || [ ! -f "$BIN" ]; then
     exit 1
 fi
 
-xcrun llvm-cov report "$BIN" \
+# Plattform-portabler llvm-cov-Aufruf: macOS via `xcrun llvm-cov`, Linux
+# via blankes `llvm-cov`.
+if command -v xcrun >/dev/null 2>&1; then
+    LLVM_COV=(xcrun llvm-cov)
+elif command -v llvm-cov >/dev/null 2>&1; then
+    LLVM_COV=(llvm-cov)
+else
+    echo "✗ llvm-cov nicht gefunden — auf Linux: 'apt install llvm', auf macOS: Xcode-CLI-Tools."
+    exit 1
+fi
+
+"${LLVM_COV[@]}" report "$BIN" \
     -instr-profile="$PROF" \
     -ignore-filename-regex='.build|Tests|\.swiftpm'
