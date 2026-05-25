@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Projekt-Dashboard</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 960px; margin: 2em auto; padding: 0 1em; color: #2c3e50; }
+    h1 { border-bottom: 2px solid #3498db; padding-bottom: 0.3em; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1em; margin: 1.5em 0; }
+    .card { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; padding: 1em; }
+    .card h2 { margin: 0 0 0.5em; font-size: 1.1em; color: #495057; }
+    .metric { font-size: 2em; font-weight: bold; }
+    .green { color: #27ae60; }
+    .yellow { color: #f39c12; }
+    .red { color: #c0392b; }
+    table { width: 100%; border-collapse: collapse; margin: 1em 0; }
+    th, td { padding: 0.6em; border-bottom: 1px solid #dee2e6; text-align: left; }
+    th { background: #f1f3f5; }
+    .footer { margin-top: 3em; font-size: 0.85em; color: #868e96; text-align: center; }
+  </style>
+</head>
+<body>
+  <h1>PROJEKT_NAME — Status</h1>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Aktuelle Phase</h2>
+      <div class="metric">0 / 5</div>
+      <small>Scaffolding</small>
+    </div>
+    <div class="card">
+      <h2>Coverage</h2>
+      <div class="metric red">— %</div>
+      <small>Gate: 80 % bis Phase 5</small>
+    </div>
+    <div class="card">
+      <h2>Tests</h2>
+      <div class="metric">—</div>
+      <small>bestanden / gesamt</small>
+    </div>
+    <div class="card">
+      <h2>Lint-Status</h2>
+      <div class="metric green">✓</div>
+      <small>0 Errors, 0 Warnings</small>
+    </div>
+  </div>
+
+  <h2>Phasen-Fortschritt</h2>
+  <table>
+    <thead>
+      <tr><th>Phase</th><th>Status</th><th>Coverage-Gate</th><th>Abschlussbericht</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>0 — Scaffolding</td><td>laufend</td><td>—</td><td>—</td></tr>
+      <tr><td>1 — Domain</td><td>ausstehend</td><td>≥ 50 %</td><td>—</td></tr>
+      <tr><td>2 — Services</td><td>ausstehend</td><td>≥ 70 %</td><td>—</td></tr>
+      <tr><td>3 — Interface</td><td>ausstehend</td><td>≥ 75 %</td><td>—</td></tr>
+      <tr><td>4 — Integration</td><td>ausstehend</td><td>≥ 80 %</td><td>—</td></tr>
+      <tr><td>5 — Release</td><td>ausstehend</td><td>≥ 80 %</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <div class="footer">
+    Diese Seite wird beim Phasen-Abschluss manuell oder via CI aktualisiert.
+  </div>
+</body>
+</html>

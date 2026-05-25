@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Knappere Berechtigungen — Default ist write-all für GITHUB_TOKEN.
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build & Test (macOS)
+    runs-on: macos-14   # macos-15 sobald GA; ARM-Runner
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Xcode-Version anzeigen
+        run: |
+          xcodebuild -version
+          swift --version
+
+      - name: Swift-Build-Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            .build
+            ~/Library/Caches/org.swift.swiftpm
+          key: ${{ runner.os }}-spm-${{ hashFiles('Package.resolved', 'Package.swift') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+
+      - name: SwiftLint installieren
+        run: |
+          if ! command -v swiftlint >/dev/null 2>&1; then
+            brew install swiftlint
+          fi
+
+      - name: Lint
+        run: swiftlint lint --strict
+
+      - name: Format-Check
+        run: xcrun swift-format lint --recursive Sources Tests
+
+      - name: Build (Debug)
+        run: swift build
+
+      - name: Tests mit Coverage
+        run: swift test --enable-code-coverage
+
+      - name: Coverage-Report extrahieren
+        run: |
+          PROF=$(find .build -name 'default.profdata' | head -1)
+          BIN=$(find .build -name '*Tests.xctest' -type d -prune -o -name '*.xctest' -print 2>/dev/null | head -1)
+          if [ -z "$BIN" ]; then
+            # Fallback für Linux/macOS: das Test-Binary direkt
+            BIN=$(find .build -type f -name '*PackageTests' | head -1)
+          fi
+          if [ -n "$PROF" ] && [ -n "$BIN" ]; then
+            xcrun llvm-cov report "$BIN" -instr-profile="$PROF" \
+              -ignore-filename-regex='.build|Tests' || true
+          else
+            echo "::warning::Coverage-Daten nicht gefunden"
+          fi
+
+      - name: Test-Artefakte hochladen (bei Fehler)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs
+          path: |
+            .build/debug.yaml
+            .build/**/test-output.xml
+          retention-days: 7
+          if-no-files-found: ignore
+
+  security:
+    name: Security (gitleaks)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # gitleaks braucht volle History
+
+      - name: gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

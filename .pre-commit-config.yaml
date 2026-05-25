@@ -1,0 +1,40 @@
+# Pre-commit-Hooks für Swift-Projekte.
+# Installation:
+#   brew install pre-commit
+#   pre-commit install
+# Manuell laufen:
+#   pre-commit run --all-files
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=2000"]
+      - id: detect-private-key
+
+  - repo: local
+    hooks:
+      - id: swiftlint
+        name: swiftlint
+        entry: swiftlint lint --quiet
+        language: system
+        types: [swift]
+        require_serial: false
+
+      - id: swift-format-check
+        name: swift-format check
+        entry: xcrun swift-format lint
+        language: system
+        types: [swift]
+        require_serial: false
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.2
+    hooks:
+      - id: gitleaks

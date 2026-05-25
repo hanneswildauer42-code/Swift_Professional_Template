@@ -1,0 +1,40 @@
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved
+
+# Xcode
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xcuserstate
+DerivedData/
+.DerivedData/
+
+# Build-Output
+dist/
+build/
+*.dmg
+*.zip
+
+# Logs
+*.log
+build*.log
+typecheck*.log
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDEs
+.vscode/
+.idea/
+
+# Claude Code
+.claude/
+
+# Lokale Notizen (nicht ins Repo)
+AGENTS.md
+HANDOFF.md
+TODO.local.md
