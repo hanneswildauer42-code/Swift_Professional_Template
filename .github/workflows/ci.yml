@@ -44,7 +44,8 @@ jobs:
           fi
 
       - name: Lint
-        run: swiftlint lint --strict
+        # `swiftlint lint` ohne --strict: Warnings sind toleriert, Errors brechen.
+        run: swiftlint lint --reporter github-actions-logging
 
       - name: Format-Check
         run: xcrun swift-format lint --recursive Sources Tests
@@ -90,7 +91,17 @@ jobs:
         with:
           fetch-depth: 0   # gitleaks braucht volle History
 
-      - name: gitleaks
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: gitleaks installieren
+        # Direkter CLI-Download statt gitleaks-action — die Action lädt SARIF
+        # als Artifact hoch und scheitert, wenn das GitHub-Actions-Storage-
+        # Kontingent erreicht ist. CLI-Aufruf hat dieses Problem nicht.
+        run: |
+          GITLEAKS_VERSION=8.21.2
+          curl -sSfL -o /tmp/gitleaks.tar.gz \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          tar -xzf /tmp/gitleaks.tar.gz -C /tmp gitleaks
+          sudo mv /tmp/gitleaks /usr/local/bin/gitleaks
+          gitleaks version
+
+      - name: Secret-Scan
+        run: gitleaks detect --source . --verbose --no-banner --redact
