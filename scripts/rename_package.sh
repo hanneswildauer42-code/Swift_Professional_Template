@@ -52,7 +52,7 @@ find . \
     -path './.build' -prune -o \
     -path './.swiftpm' -prune -o \
     -path './scripts/rename_package.sh' -prune -o \
-    -type f \( -name '*.swift' -o -name '*.yml' -o -name '*.yaml' -o -name '*.md' -o -name 'Justfile' -o -name '.swiftlint.yml' -o -name 'Package.swift' \) \
+    -type f \( -name '*.swift' -o -name '*.yml' -o -name '*.yaml' -o -name '*.md' -o -name '*.html' -o -name 'Justfile' -o -name '.swiftlint.yml' -o -name 'Package.swift' \) \
     -exec perl -pi -e "s|PROJEKT_PACKAGE|$PKG_NAME|g; s|PROJEKT_NAME|$DIST_NAME|g" {} +
 
 echo "→ Verzeichnisse umbenennen …"

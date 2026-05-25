@@ -10,6 +10,13 @@ excluded:
   - dist
   - DerivedData
   - .DerivedData
+  # Template-Quellen mit Platzhalter-Bezeichnern (Unterstriche verletzen
+  # die type_name-Default-Regel). Nach `./scripts/rename_package.sh`
+  # existieren diese Pfade nicht mehr — die Quellen liegen dann unter
+  # Sources/<DeinName>/ und Tests/<DeinName>Tests/ und werden normal
+  # gelintet.
+  - Sources/PROJEKT_PACKAGE
+  - Tests/PROJEKT_PACKAGETests
 
 identifier_name:
   min_length:

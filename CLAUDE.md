@@ -54,6 +54,24 @@ In CI steuert die Repo-Variable `COVERAGE_PHASE` (Settings → Variables → Act
 
 Ein Phasen-Abschluss ohne erfülltes Gate ist **nicht erlaubt**. Wenn das Gate nicht erreicht wird, entweder mehr Tests schreiben oder die Phase erweitern — **nicht** das Gate senken (`scripts/coverage_check.sh` enthält die Werte hartcodiert, damit das durch ein Code-Review gehen muss).
 
+### Kritikalitätsstufen (Interview Block 0)
+
+Die im Projekt-Interview gewählte Kritikalitätsstufe (Q0) steuert, wie streng die obigen Gates greifen:
+
+| Stufe | Bedeutung | Coverage-Gates | Security | Doku |
+|-------|-----------|----------------|----------|------|
+| **(a) Prototyp / Spike** | Wegwerfbar, schnelle Iteration | **Aus** (`COVERAGE_PHASE=0` dauerhaft) | gitleaks bleibt aktiv, `osv-scanner` optional | ARCHITEKTUR.md kann leer bleiben |
+| **(b) Internes Tool** | Begrenzter Nutzerkreis | Gates ab Phase 1 (≥ 50 % bis 80 %) | gitleaks Pflicht, `osv-scanner` empfohlen | ADRs ab Phase 2 |
+| **(c) Produktion / OSS** | Veröffentlicht / kritisch | Gates voll, `prepush` umfasst `audit` (osv-scanner) | gitleaks + osv-scanner Pflicht, Code-Signing in CI | Vollständige Doku, signierte Releases |
+
+**Spike-Modus konkret abschalten:**
+
+1. Im GitHub-Repo: `Settings → Variables → Actions` → `COVERAGE_PHASE = 0` setzen und dort lassen
+2. Im Justfile: `just check` reicht (keine Coverage-Pflicht via Recipe)
+3. Im CI-Workflow kann der `security`-Job weggelassen werden, wenn der Prototyp keine externen Abhängigkeiten hat — aber das ist meist nicht der Fall, also lieber stehen lassen
+
+Beim Wechsel von Spike zu Internem Tool (a → b): `COVERAGE_PHASE` auf 1 setzen und einen ersten Tests-Sweep schreiben.
+
 ### Tests sind Pflicht
 
 **Jede neue Funktion** bekommt mindestens einen XCTest. Falls Behaviour-Test schwierig ist (z. B. UI), zumindest ein Smoke-Test, der den Code-Pfad durchläuft.

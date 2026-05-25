@@ -102,3 +102,28 @@ jobs:
 
       - name: Secret-Scan
         run: gitleaks detect --source . --verbose --no-banner --redact
+
+  audit:
+    name: Dependency-Audit (osv-scanner)
+    # Aktiv für Produktions-/OSS-Projekte (Interview Q0c). Steuerung über
+    # die Repo-Variable AUDIT_ENABLED ∈ {true, false}; Default false, damit
+    # Spike-Projekte den Job überspringen.
+    if: ${{ vars.AUDIT_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: osv-scanner installieren
+        run: |
+          OSV_VERSION=1.9.2
+          curl -sSfL -o /tmp/osv-scanner \
+            "https://github.com/google/osv-scanner/releases/download/v${OSV_VERSION}/osv-scanner_linux_amd64"
+          chmod +x /tmp/osv-scanner
+          sudo mv /tmp/osv-scanner /usr/local/bin/osv-scanner
+          osv-scanner --version
+
+      - name: Dependency-Scan
+        # Auto-Detection von Package.resolved + sonstigen Lockfiles.
+        # Exit ≠ 0 wenn CVEs gefunden — bricht den CI-Run.
+        run: osv-scanner scan source .

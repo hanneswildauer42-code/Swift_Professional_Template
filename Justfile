@@ -18,9 +18,11 @@ hooks:
 hooks-all:
     pre-commit run --all-files
 
-# Lint-Check (swiftlint)
+# Lint-Check (swiftlint).
+# Kein --strict: Warnings sind toleriert, nur echte Errors brechen den Build.
+# Damit identisch zum CI-Verhalten — siehe .github/workflows/ci.yml.
 lint:
-    swiftlint lint --strict
+    swiftlint lint
 
 # Auto-Fix für lint-fixbare Verletzungen
 lint-fix:
@@ -94,8 +96,17 @@ clean:
     rm -rf .build .swiftpm
     swift package clean
 
-# Vor dem Push — strenger Vollcheck
+# Vor dem Push — strenger Vollcheck.
+# Enthält audit (osv-scanner) NUR wenn das Tool installiert ist —
+# kein hartes Fail, wenn der Nutzer es bewusst nicht haben will.
+# Für Produktion/OSS-Projekte (Interview Q0c) sollte audit Pflicht sein.
 prepush: lint format-check test security
+    @if command -v osv-scanner >/dev/null 2>&1; then \
+        echo "→ osv-scanner audit …"; \
+        just audit; \
+    else \
+        echo "  (osv-scanner nicht installiert — bei Produktions-Projekten Pflicht: brew install osv-scanner)"; \
+    fi
     @echo "✓ Bereit zum Push."
 
 # Aktuelle Version aus Sources/<Package>/*.swift extrahieren (für Releases).

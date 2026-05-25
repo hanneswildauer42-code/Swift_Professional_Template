@@ -1,8 +1,10 @@
 # Swift Professional Template
 
-Vorlage für professionelle Swift-Projekte mit Claude Code. SPM-Layout, vollständige Toolchain (SwiftLint, swift-format, XCTest, Coverage-Gates, gitleaks), GitHub-Actions-CI für macOS und Linux, Methodik-Doku-Skelett.
+Vorlage für professionelle Swift-Projekte mit Claude Code. SPM-Layout, vollständige Toolchain (SwiftLint, swift-format, XCTest, Coverage-Gates, gitleaks), GitHub-Actions-CI auf macOS (Linux-Job optional nach Interview-Antwort Q6), Methodik-Doku-Skelett.
 
 > **Hinweis:** Dieses Repository ist eine **Vorlage**, kein lauffähiges Projekt. Erst nach dem Initialisierungs-Interview und der Umbenennung (`scripts/rename_package.sh`) sind alle Platzhalter ersetzt.
+>
+> **Reihenfolge ist wichtig:** Erst `rename_package.sh`, *dann* `just check` / CI-Push. Im unumbenannten Zustand laufen `swift build` und `swift test` zwar grün, aber `swiftlint` meldet `type_name`-Verletzungen für die Platzhalter `PROJEKT_PACKAGE` (Unterstrich verboten — gewollte Default-Regel). Inline-`swiftlint:disable type_name` im Template-Code unterdrückt das so lange, bis `rename_package.sh` gelaufen ist; danach sollte die Disable-Direktive aus den Quellen entfernt werden.
 
 ## Verwendung
 
@@ -10,7 +12,7 @@ Vorlage für professionelle Swift-Projekte mit Claude Code. SPM-Layout, vollstä
 2. Öffne Claude Code in diesem Verzeichnis
 3. Claude liest `CLAUDE.md` und erkennt den Initialisierungsmodus
 4. Das Projekt-Interview (`PROJEKT_INTERVIEW.md`) startet automatisch
-5. Nach deinen Antworten ersetzt Claude die Platzhalter (oder du rufst `./scripts/rename_package.sh <dist-name> <package-name>` direkt auf)
+5. Nach deinen Antworten ersetzt Claude die Platzhalter (oder du rufst `./scripts/rename_package.sh <dist-name> <package-name>` direkt auf) — **immer vor dem ersten `just check`**
 6. Bootstrap: `./scripts/bootstrap.sh` (installiert swiftlint, just, pre-commit, gitleaks und führt initialen Build/Test aus)
 7. Phase 0 (Scaffolding) beginnt
 
