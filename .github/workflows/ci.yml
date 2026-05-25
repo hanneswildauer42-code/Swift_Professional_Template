@@ -56,20 +56,17 @@ jobs:
       - name: Tests mit Coverage
         run: swift test --enable-code-coverage
 
-      - name: Coverage-Report extrahieren
-        run: |
-          PROF=$(find .build -name 'default.profdata' | head -1)
-          BIN=$(find .build -name '*Tests.xctest' -type d -prune -o -name '*.xctest' -print 2>/dev/null | head -1)
-          if [ -z "$BIN" ]; then
-            # Fallback für Linux/macOS: das Test-Binary direkt
-            BIN=$(find .build -type f -name '*PackageTests' | head -1)
-          fi
-          if [ -n "$PROF" ] && [ -n "$BIN" ]; then
-            xcrun llvm-cov report "$BIN" -instr-profile="$PROF" \
-              -ignore-filename-regex='.build|Tests' || true
-          else
-            echo "::warning::Coverage-Daten nicht gefunden"
-          fi
+      - name: Coverage-Report
+        run: ./scripts/coverage_report.sh
+
+      - name: Coverage-Gate prüfen
+        # Phase steuert die Schwelle (0/50/70/75/80/80). Default = 0 (kein
+        # Gate), aber das Repo überschreibt das über die Variable
+        # COVERAGE_PHASE in `Settings → Variables → Actions`.
+        # So bleibt das Gate während Phase 0 stumm, ab Phase 1 aktiv.
+        env:
+          PHASE: ${{ vars.COVERAGE_PHASE || '0' }}
+        run: ./scripts/coverage_check.sh "$PHASE"
 
       - name: Test-Artefakte hochladen (bei Fehler)
         if: failure()

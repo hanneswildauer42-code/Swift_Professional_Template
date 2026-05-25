@@ -53,11 +53,13 @@ test-coverage:
 
 # Coverage als Text-Report
 coverage-report:
-    @PROF=$(find .build -name 'default.profdata' | head -1); \
-     BIN=$(find .build -name '*Tests' -type f -path '*.xctest/Contents/MacOS/*' | head -1); \
-     [ -z "$BIN" ] && BIN=$(find .build -name '*Tests' -type f | head -1); \
-     xcrun llvm-cov report "$BIN" -instr-profile="$PROF" -ignore-filename-regex='.build|Tests' || \
-     echo "Erst 'just test-coverage' laufen lassen."
+    @./scripts/coverage_report.sh
+
+# Coverage gegen Phasen-Gate prüfen — bricht mit Exit ≠ 0 ab,
+# wenn die Total-Line-Coverage unter der Schwelle liegt.
+# Aufruf: just coverage-check PHASE=2
+coverage-check PHASE="0":
+    @./scripts/coverage_check.sh {{PHASE}}
 
 # Komplette Prüfkette — vor jedem Commit / nach jeder Änderung
 check: lint format-check test
@@ -67,9 +69,17 @@ check: lint format-check test
 security:
     gitleaks detect --source . --verbose --no-banner
 
-# Dependency-Audit (für SPM)
+# Dependency-Audit über OSV (Open Source Vulnerabilities).
+# Setzt `osv-scanner` voraus (brew install osv-scanner).
 audit:
-    swift package audit-dependencies || echo "(swift package audit-dependencies steht erst ab Swift 5.10+ zur Verfügung)"
+    @if command -v osv-scanner >/dev/null 2>&1; then \
+        osv-scanner scan source --lockfile Package.resolved 2>/dev/null \
+          || osv-scanner scan source .; \
+    else \
+        echo "✗ osv-scanner nicht installiert."; \
+        echo "  brew install osv-scanner"; \
+        exit 1; \
+    fi
 
 # Saubere Build-Artefakte löschen
 clean:
@@ -80,6 +90,10 @@ clean:
 prepush: lint format-check test security
     @echo "✓ Bereit zum Push."
 
-# Aktuelle Version aus Package.swift extrahieren (für Releases)
+# Aktuelle Version aus Sources/<Package>/*.swift extrahieren (für Releases).
+# Sucht nach `static let version = "X.Y.Z"`-Konvention.
+# Fällt auf 0.0.0 zurück, wenn nichts Passendes gefunden wird.
 version:
-    @grep -m1 'version = ' Sources/*/*.swift | sed 's/.*"\(.*\)".*/\1/' || echo "0.0.0"
+    @VER=$(grep -hoE 'version = "[0-9]+\.[0-9]+\.[0-9]+"' Sources/*/*.swift 2>/dev/null \
+             | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+'); \
+     echo "${VER:-0.0.0}"

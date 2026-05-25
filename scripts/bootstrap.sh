@@ -65,13 +65,33 @@ if [ -f .pre-commit-config.yaml ]; then
 fi
 
 # 5. Initiales Build + Test
+#
+# Wichtig: `swift build | tail -3` würde wegen `tail` immer Exit 0 liefern,
+# und `if pipeline; then` deaktiviert zusätzlich `set -e`. Wir prüfen
+# darum den Exit-Status explizit und loggen bei Fehler die letzten 20
+# Zeilen, damit der Nutzer sieht, was schiefging.
+
+BOOTSTRAP_LOG=$(mktemp -t swift-bootstrap.XXXXXX)
+trap 'rm -f "$BOOTSTRAP_LOG"' EXIT
+
 echo
-echo "→ Smoke-Build + Smoke-Test …"
-if swift build 2>&1 | tail -3; then
+echo "→ Smoke-Build …"
+if swift build > "$BOOTSTRAP_LOG" 2>&1; then
     echo "  ✓ swift build OK"
+else
+    echo "  ✗ swift build fehlgeschlagen — letzte Zeilen:"
+    tail -20 "$BOOTSTRAP_LOG" | sed 's/^/    /'
+    exit 1
 fi
-if swift test 2>&1 | tail -3; then
+
+echo
+echo "→ Smoke-Test …"
+if swift test > "$BOOTSTRAP_LOG" 2>&1; then
     echo "  ✓ swift test OK"
+else
+    echo "  ✗ swift test fehlgeschlagen — letzte Zeilen:"
+    tail -20 "$BOOTSTRAP_LOG" | sed 's/^/    /'
+    exit 1
 fi
 
 echo

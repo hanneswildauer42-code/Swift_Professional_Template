@@ -15,15 +15,43 @@ fi
 DIST_NAME="$1"
 PKG_NAME="$2"
 
+# --- Input-Validierung -----------------------------------------------------
+#
+# Wir lassen NUR ASCII-Zeichen zu, die in Swift-Identifiern und kebab-case-
+# Dateinamen sinnvoll sind. Sonderzeichen (/, &, ., Backslash, Whitespace)
+# würden sed-Substitutionen zerlegen und Quellen korrumpieren.
+
+if ! [[ "$DIST_NAME" =~ ^[a-z0-9][a-z0-9_-]*$ ]]; then
+    echo "✗ DIST_NAME muss kebab-case sein: [a-z0-9][a-z0-9_-]*"
+    echo "  Erhalten: '$DIST_NAME'"
+    exit 2
+fi
+
+if ! [[ "$PKG_NAME" =~ ^[A-Z][A-Za-z0-9]*$ ]]; then
+    echo "✗ PKG_NAME muss PascalCase sein: [A-Z][A-Za-z0-9]*"
+    echo "  Erhalten: '$PKG_NAME'"
+    exit 2
+fi
+
+# --- Ersetzungen -----------------------------------------------------------
+#
+# Reihenfolge: zuerst PROJEKT_PACKAGE, dann PROJEKT_NAME — weil
+# PROJEKT_NAME als Substring in PROJEKT_PACKAGE vorkommt. Würden wir
+# PROJEKT_NAME zuerst durch z. B. "my-tool" ersetzen, blieb von
+# PROJEKT_PACKAGE der Müll "my-tool_PACKAGE" übrig.
+#
+# Wir nutzen '|' als sed-Trenner (nicht '/'), damit Pfade als Eingaben
+# kein Problem wären. (Die Validierung oben verbietet '/' ohnehin — der
+# Trenner-Wechsel ist Defense in Depth.)
+
 echo "→ Ersetze in Quelldateien …"
-# Reihenfolge wichtig: zuerst Package-Name (länger), dann Dist-Name
 find . \
     -path './.git' -prune -o \
     -path './.build' -prune -o \
     -path './.swiftpm' -prune -o \
     -path './scripts/rename_package.sh' -prune -o \
     -type f \( -name '*.swift' -o -name '*.yml' -o -name '*.yaml' -o -name '*.md' -o -name 'Justfile' -o -name '.swiftlint.yml' -o -name 'Package.swift' \) \
-    -exec sed -i '' "s/PROJEKT_PACKAGE/$PKG_NAME/g; s/PROJEKT_NAME/$DIST_NAME/g" {} +
+    -exec sed -i '' "s|PROJEKT_PACKAGE|$PKG_NAME|g; s|PROJEKT_NAME|$DIST_NAME|g" {} +
 
 echo "→ Verzeichnisse umbenennen …"
 if [ -d "Sources/PROJEKT_PACKAGE" ]; then
@@ -40,7 +68,11 @@ if [ -f "Tests/${PKG_NAME}Tests/PROJEKT_PACKAGETests.swift" ]; then
 fi
 
 echo "→ swift build zur Verifikation …"
-swift build
+if ! swift build; then
+    echo
+    echo "✗ swift build hat fehlgeschlagen. Bitte die Fehler oben prüfen."
+    exit 3
+fi
 
 echo
 echo "✓ Umbenennung abgeschlossen:"

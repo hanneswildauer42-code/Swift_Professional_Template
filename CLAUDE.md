@@ -44,7 +44,15 @@ just prepush   # zusätzlich security-scan (vor Push)
 | 4 | ≥ 80 % |
 | 5 | ≥ 80 % |
 
-Ein Phasen-Abschluss ohne erfülltes Gate ist **nicht erlaubt**. Wenn das Gate nicht erreicht wird, entweder mehr Tests schreiben oder die Phase erweitern — nicht das Gate senken.
+**Diese Gates werden automatisch durchgesetzt** — sowohl lokal als auch in CI:
+
+```bash
+just coverage-check PHASE=2     # bricht mit Exit 1 ab, wenn < 70 %
+```
+
+In CI steuert die Repo-Variable `COVERAGE_PHASE` (Settings → Variables → Actions), gegen welche Phase geprüft wird. Default `0` (stumm) bis das Projekt in Phase 1 angelangt ist.
+
+Ein Phasen-Abschluss ohne erfülltes Gate ist **nicht erlaubt**. Wenn das Gate nicht erreicht wird, entweder mehr Tests schreiben oder die Phase erweitern — **nicht** das Gate senken (`scripts/coverage_check.sh` enthält die Werte hartcodiert, damit das durch ein Code-Review gehen muss).
 
 ### Tests sind Pflicht
 

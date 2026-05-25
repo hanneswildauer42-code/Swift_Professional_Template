@@ -113,6 +113,10 @@ Phasen werden **sequentiell** abgearbeitet. Sprünge sind nicht erlaubt — Phas
 ## Coverage-Gates dürfen NICHT gesenkt werden
 
 Wenn das Gate nicht erreicht wird:
-1. Tests ergänzen, bis erreicht
+1. Tests ergänzen, bis erreicht (`just coverage-check PHASE=N` zeigt den aktuellen Stand)
 2. Oder die Phase um „Test-Lücken schließen"-Tasks erweitern
-3. **Niemals** Gate-Wert in dieser Datei senken
+3. **Niemals** Gate-Wert in dieser Datei senken — die Werte sind zusätzlich in `scripts/coverage_check.sh` hartcodiert und werden in CI durchgesetzt. Ein „Gate senken" erfordert also Änderung an beiden Stellen und muss durch Code-Review.
+
+## Verifikation in CI
+
+Die Repo-Variable `COVERAGE_PHASE` (Settings → Variables → Actions) steuert, gegen welche Phase CI prüft. Beim Übergang von Phase N zu N+1 wird die Variable hochgezählt; der erste CI-Lauf der neuen Phase muss das Gate erreichen, sonst rot.
