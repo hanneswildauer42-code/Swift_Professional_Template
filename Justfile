@@ -73,19 +73,21 @@ security:
 # Setzt `osv-scanner` voraus (brew install osv-scanner).
 #
 # WICHTIG: osv-scanner liefert exit != 0 wenn CVEs gefunden werden.
-# Wir wollen das durchreichen, NICHT mit `|| true` o. ä. maskieren —
-# sonst wird der Audit-Step stillschweigend "grün" obwohl es Treffer gibt.
+# Wir reichen das direkt durch — KEIN `|| true` o. ä., sonst wird der
+# Audit-Step stillschweigend "grün" obwohl es Treffer gibt.
+#
+# `osv-scanner scan source .` durchsucht das Verzeichnis und erkennt
+# `Package.resolved` automatisch (genauso wie package-lock.json,
+# Cargo.lock etc.). Eine explizite `--lockfile`-Differenzierung ist
+# nicht nötig — und wäre auch fehlerhaft, weil `--lockfile` eine
+# Top-Level-Option ist, kein Argument für `scan source`.
 audit:
     @if ! command -v osv-scanner >/dev/null 2>&1; then \
         echo "✗ osv-scanner nicht installiert."; \
         echo "  brew install osv-scanner"; \
         exit 1; \
     fi; \
-    if [ -f Package.resolved ]; then \
-        osv-scanner scan source --lockfile Package.resolved; \
-    else \
-        osv-scanner scan source .; \
-    fi
+    osv-scanner scan source .
 
 # Saubere Build-Artefakte löschen
 clean:

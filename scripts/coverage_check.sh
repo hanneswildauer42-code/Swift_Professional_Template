@@ -74,17 +74,28 @@ if [ -z "$REPORT" ]; then
     exit 1
 fi
 
-PCT=$(printf '%s\n' "$REPORT" | tail -1 | grep -oE '[0-9]+\.[0-9]+%' | sed -n '3p' | tr -d '%')
+# Line-Coverage aus der TOTAL-Zeile extrahieren.
+#
+# llvm-cov-Output-Format der TOTAL-Zeile (whitespace-getrennt):
+#   $1=TOTAL  $2=Regions  $3=MissedR  $4=Region-%   $5=Funcs  $6=MissedF
+#   $7=Func-% $8=Lines    $9=MissedL  $10=Line-%    $11=Branches  $12=MissedB
+#   $13=Branch-% (oder "-")
+#
+# Wir wollen Field 10 (Line-Coverage). awk parst strukturell, daher robust
+# gegen Variationen wie "100%" ohne Dezimalpunkt vs. "100.00%" — der Regex-
+# basierte Vorgänger-Code übersprang "100%" ohne Komma.
+PCT=$(printf '%s\n' "$REPORT" | awk '/^TOTAL/ {print $10}' | tr -d '%')
 
 if [ -z "$PCT" ]; then
-    echo "✗ Coverage-Wert konnte nicht aus llvm-cov-Output extrahiert werden."
-    echo "  Letzte Zeile war:"
-    printf '%s\n' "$REPORT" | tail -3 | sed 's/^/    /'
+    echo "✗ Line-Coverage konnte nicht aus llvm-cov-Output extrahiert werden."
+    echo "  TOTAL-Zeile war:"
+    printf '%s\n' "$REPORT" | awk '/^TOTAL/' | sed 's/^/    /'
     exit 1
 fi
 
 # Floor statt Round — 49.99% darf NICHT das 50%-Gate erreichen.
-# `${PCT%.*}` schneidet alles ab dem ersten Punkt ab (für 49.99 → "49").
+# `${PCT%.*}` schneidet alles ab dem ersten Punkt ab (für 49.99 → "49",
+# für ganze Zahlen wie "100" bleibt "100" stehen).
 PCT_INT="${PCT%.*}"
 
 echo "Phase $PHASE: Line-Coverage = ${PCT}% (Gate: ≥ ${GATE}%)"

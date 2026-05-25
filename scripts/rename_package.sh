@@ -37,22 +37,14 @@ fi
 #
 # Reihenfolge: zuerst PROJEKT_PACKAGE, dann PROJEKT_NAME — weil
 # PROJEKT_NAME als Substring in PROJEKT_PACKAGE vorkommt. Würden wir
-# PROJEKT_NAME zuerst durch z. B. "my-tool" ersetzen, blieb von
+# PROJEKT_NAME zuerst durch z. B. "my-tool" ersetzen, bliebe von
 # PROJEKT_PACKAGE der Müll "my-tool_PACKAGE" übrig.
 #
-# Wir nutzen '|' als sed-Trenner (nicht '/'), damit Pfade als Eingaben
-# kein Problem wären. (Die Validierung oben verbietet '/' ohnehin — der
-# Trenner-Wechsel ist Defense in Depth.)
-#
-# `sed -i` ist plattformabhängig: GNU akzeptiert `-i` direkt, BSD/macOS
-# verlangt ein Backup-Suffix-Argument (`-i ''` für kein Backup). Wir
-# detektieren das anhand des sed-Versions-Strings.
-
-if sed --version 2>/dev/null | grep -q GNU; then
-    SED_INPLACE=(-i)
-else
-    SED_INPLACE=(-i '')
-fi
+# Wir nutzen `perl -pi -e` für In-Place-Edits — Perl ist auf allen
+# Unix-Plattformen vorinstalliert (macOS + Linux + BSD) und unterstützt
+# `-i` einheitlich, ohne die BSD/GNU-sed-Inkompatibilität. Trennzeichen
+# in der Substitution ist `|` (nicht `/`), damit auch Pfade in Inputs
+# kein Problem wären — die Regex-Validierung oben verbietet `/` ohnehin.
 
 echo "→ Ersetze in Quelldateien …"
 find . \
@@ -61,7 +53,7 @@ find . \
     -path './.swiftpm' -prune -o \
     -path './scripts/rename_package.sh' -prune -o \
     -type f \( -name '*.swift' -o -name '*.yml' -o -name '*.yaml' -o -name '*.md' -o -name 'Justfile' -o -name '.swiftlint.yml' -o -name 'Package.swift' \) \
-    -exec sed "${SED_INPLACE[@]}" "s|PROJEKT_PACKAGE|$PKG_NAME|g; s|PROJEKT_NAME|$DIST_NAME|g" {} +
+    -exec perl -pi -e "s|PROJEKT_PACKAGE|$PKG_NAME|g; s|PROJEKT_NAME|$DIST_NAME|g" {} +
 
 echo "→ Verzeichnisse umbenennen …"
 if [ -d "Sources/PROJEKT_PACKAGE" ]; then
